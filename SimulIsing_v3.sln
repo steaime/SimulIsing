@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 15
+VisualStudioVersion = 15.0.27703.2047
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SimulIsing_v3", "SimulIsing_v1.vcxproj", "{A2E797B5-1239-40AB-97C9-419796E372AE}"
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "Setup", "Setup\Setup.vdproj", "{14B26A76-546C-4BA6-A87A-5C790F6EDC5B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{A2E797B5-1239-40AB-97C9-419796E372AE}.Debug|x64.ActiveCfg = Debug|x64
+		{A2E797B5-1239-40AB-97C9-419796E372AE}.Debug|x64.Build.0 = Debug|x64
+		{A2E797B5-1239-40AB-97C9-419796E372AE}.Debug|x86.ActiveCfg = Debug|Win32
+		{A2E797B5-1239-40AB-97C9-419796E372AE}.Debug|x86.Build.0 = Debug|Win32
+		{A2E797B5-1239-40AB-97C9-419796E372AE}.Release|x64.ActiveCfg = Release|x64
+		{A2E797B5-1239-40AB-97C9-419796E372AE}.Release|x64.Build.0 = Release|x64
+		{A2E797B5-1239-40AB-97C9-419796E372AE}.Release|x86.ActiveCfg = Release|Win32
+		{A2E797B5-1239-40AB-97C9-419796E372AE}.Release|x86.Build.0 = Release|Win32
+		{14B26A76-546C-4BA6-A87A-5C790F6EDC5B}.Debug|x64.ActiveCfg = Debug
+		{14B26A76-546C-4BA6-A87A-5C790F6EDC5B}.Debug|x86.ActiveCfg = Debug
+		{14B26A76-546C-4BA6-A87A-5C790F6EDC5B}.Release|x64.ActiveCfg = Release
+		{14B26A76-546C-4BA6-A87A-5C790F6EDC5B}.Release|x86.ActiveCfg = Release
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A7392A1E-AD98-42EC-9F13-1A3A03B5A537}
+	EndGlobalSection
+EndGlobal
