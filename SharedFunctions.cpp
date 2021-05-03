@@ -1229,14 +1229,77 @@ void ImportDataFromRawBinary(std::string in_file, double* x, int64_t& num_vals, 
 	int64_t num_px = 0;
 	std::fstream fin = OpenRawBinary(in_file, num_imgs, num_px);
 	if (num_vals < 0) num_vals = num_imgs * num_px;
+	ImportDataFromRawBinary(&fin, x, num_vals, max_vals, true);
+}
+
+void ImportDataFromRawBinary(std::fstream *in_file, double* x, int64_t& num_vals, int64_t max_vals, bool close_after, char px_format, bool swap_endian)
+{
 	if (max_vals > 0 && num_vals > max_vals) num_vals = max_vals;
 	int64_t buflen = num_vals * sizeof(double) / sizeof(char);
-	char *buffer = new char[buflen];
-	fin.read(buffer, buflen);
-	fin.close();
-	double* double_values = (double*)buffer;//reinterpret as doubles
-	for (int i = 0; i < num_vals; i++) {
-		x[i] = double_values[i];
+	char* buffer = new char[buflen];
+	in_file->read(buffer, buflen);
+	if (close_after) in_file->close();
+	if (px_format == 'd') {
+		double* double_values = (double*)buffer;//reinterpret as doubles
+		for (int i = 0; i < num_vals; i++) {
+			if (swap_endian) x[i] = EndianSwap<double>(double_values[i]);
+			else x[i] = double_values[i];
+		}
+	}
+	else if (px_format == 'f') {
+		float* float_values = (float*)buffer;
+		for (int i = 0; i < num_vals; i++) {
+			if (swap_endian) x[i] = (double)(EndianSwap<float>(float_values[i]));
+			else x[i] = (double)float_values[i];
+		}
+	}
+	else if (px_format == 'I') {
+		uint32_t* uint32_values = (uint32_t*)buffer;
+		for (int i = 0; i < num_vals; i++) {
+			if (swap_endian) x[i] = (double)(EndianSwap<uint32_t>(uint32_values[i]));
+			else x[i] = (double)uint32_values[i];
+		}
+	}
+	else if (px_format == 'i') {
+		int32_t* int32_values = (int32_t*)buffer;
+		for (int i = 0; i < num_vals; i++) {
+			if (swap_endian) x[i] = (double)(EndianSwap<int32_t>(int32_values[i]));
+			else x[i] = (double)int32_values[i];
+		}
+	}
+	else if (px_format == 'H') {
+		uint16_t* uint16_values = (uint16_t*)buffer;
+		for (int i = 0; i < num_vals; i++) {
+			if (swap_endian) x[i] = (double)(EndianSwap<uint16_t>(uint16_values[i]));
+			else x[i] = (double)uint16_values[i];
+		}
+	}
+	else if (px_format == 'h') {
+		int16_t* int16_values = (int16_t*)buffer;
+		for (int i = 0; i < num_vals; i++) {
+			if (swap_endian) x[i] = (double)(EndianSwap<int16_t>(int16_values[i]));
+			else x[i] = (double)int16_values[i];
+		}
+	}
+	else if (px_format == 'B') {
+		uint8_t* uint8_values = (uint8_t*)buffer;
+		for (int i = 0; i < num_vals; i++) {
+			x[i] = (double)uint8_values[i];
+		}
+	}
+	else if (px_format == 'b') {
+		int8_t* int8_values = (int8_t*)buffer;
+		for (int i = 0; i < num_vals; i++) {
+			x[i] = (double)int8_values[i];
+		}
+	}
+	else {
+		std::cout << "ERROR in ImportDataFromRawBinary(): pixel format '" << px_format << 
+			"' not recognized. Allowed formats: d (default), f, I, i, H, h, B, b. Using default format." << std::endl;
+		double* def_values = (double*)buffer;
+		for (int i = 0; i < num_vals; i++) {
+			x[i] = def_values[i];
+		}
 	}
 	delete[] buffer;
 	buffer = NULL;
@@ -1249,15 +1312,32 @@ std::fstream OpenRawBinary(std::string in_file, char* hdr_bytes, int hdr_len) {
 }
 
 
-std::fstream OpenRawBinary(std::string in_file, int32_t &num_imgs, int64_t &num_px) {
+std::fstream OpenRawBinary(std::string in_file, int32_t& num_imgs, int64_t& num_px, int hdr_len) {
 	const int hdr_size = sizeof(num_imgs) + sizeof(num_px);
-	char hdr_bytes[hdr_size];
-	std::fstream res = OpenRawBinary(in_file, hdr_bytes, hdr_size);
-	num_imgs = Int32FromCharArray(hdr_bytes);
-	num_px = Int64FromCharArray(&hdr_bytes[4]);
+	if (hdr_len < 0) hdr_len = hdr_size;
+	char* hdr_bytes = NULL;
+	if (hdr_len > 0) hdr_bytes = new char[hdr_len];
+	std::fstream res = OpenRawBinary(in_file, hdr_bytes, hdr_len);
+	if (hdr_len == 4) {
+		num_imgs = 1;
+		num_px = (int64_t)Int32FromCharArray(hdr_bytes);
+	}
+	else if (hdr_len == 8) {
+		num_imgs = 1;
+		num_px = Int64FromCharArray(hdr_bytes);
+	}
+	else if (hdr_len == 12) {
+		num_imgs = Int32FromCharArray(hdr_bytes);
+		num_px = Int64FromCharArray(&hdr_bytes[4]);
+	}
+	else {
+		std::cout << "ERROR in OpenRawBinary(): invalid header size (accepted: 0|4|8|12, given:" << hdr_len << ")" << std::endl;
+	}
 #if VERBOSE:
 	std::cout << "Raw image " << in_file << " contains " << num_imgs << " images with " << num_px << " pixels each." << std::endl;
 #endif
+	delete[] hdr_bytes;
+	hdr_bytes = NULL;
 	return res;
 }
 
@@ -1465,6 +1545,103 @@ int FileLoadSingleColumn(std::string sFileName, int iNumCol, int iColIdx, double
 	}
 	myfile.close();
 	return iCount / iNumCol;
+}
+
+bool CopyFileBinary(const char* SRC, const char* DEST)
+{
+	std::ifstream src(SRC, std::ios::binary);
+	std::ofstream dest(DEST, std::ios::binary);
+	dest << src.rdbuf();
+	return src && dest;
+}
+
+bool CopyFileToFolder(std::string source_filepath, std::string dest_folder)
+{
+	std::string dest_fpath = dest_folder + FilenameFromPath(source_filepath);
+	return CopyFileBinary((char*)source_filepath.c_str(), (char*)dest_fpath.c_str());
+}
+
+std::string FilenameFromPath(std::string full_path, bool remove_ext)
+{
+	std::string res(full_path);
+
+	// Remove directory if present.
+	// Do this before extension removal incase directory has a period character.
+	const size_t last_slash_idx = res.find_last_of("\\/");
+	if (std::string::npos != last_slash_idx) res.erase(0, last_slash_idx + 1);
+	
+	// Remove extension if present.
+	if (remove_ext) {
+		const size_t period_idx = res.rfind('.');
+		if (std::string::npos != period_idx) res.erase(period_idx);
+	}
+	
+	return res;
+}
+
+std::string GetExePath()
+{
+	char path[MAX_PATH];
+	GetModuleFileNameA(NULL, path, MAX_PATH);
+	return std::string(path);
+}
+
+std::string GetExeDir()
+{
+	return GetParentDirectory(GetExePath(), 1);
+}
+
+std::string GetParentDirectory(std::string folder_path, int num_generations)
+{
+	if (num_generations == 0) return folder_path;
+	else {
+		std::vector<int> chloc;
+		for (int i = 0; i < folder_path.size(); i++)
+			if (folder_path[i] == '/' || folder_path[i] == '\\')
+				chloc.push_back(i);
+		if (chloc.size() >= num_generations) return folder_path.substr(0, chloc[chloc.size() - num_generations]);
+		else return "";
+	}
+}
+
+std::string JoinPath(std::string root, std::string parent, std::string subfolder)
+{
+	std::string res = root;
+	if (parent.size() > 0) {
+		if (res.back() != '/' && res.back() != '\\') res = res + "\\";
+		res = res + parent;
+	}
+	if (subfolder.size() > 0) {
+		if (res.back() != '/' && res.back() != '\\') res = res + "\\";
+		res = res + subfolder;
+	}
+	return res;
+}
+
+bool CheckPathRelative(std::string path_string)
+{
+	//std::experimental::filesystem::path my_path(path_string); // Construct the path from a string.
+	//return my_path.is_relative();
+	return PathIsRelativeA(path_string.c_str());
+}
+
+bool CheckFileExists(std::string file_path)
+{
+	std::ifstream ifile;
+	ifile.open(file_path);
+	if (ifile) return true;
+	else return false;
+}
+
+std::string NowToString()
+{
+	time_t     now = std::time(0);
+	struct tm  tstruct;
+	char       buf[80];
+	tstruct = *std::localtime(&now);
+	// ref: http://en.cppreference.com/w/cpp/chrono/c/strftime
+	std::strftime(buf, sizeof(buf), "%Y-%m-%d.%X", &tstruct);
+	return buf;
 }
 
 int FileLoadMultiColumn(std::string sFileName, int iNumCol, double** ppdValues)

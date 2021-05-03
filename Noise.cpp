@@ -17,22 +17,22 @@ Noise::Noise(int type, double avg) {
 	Initialize(type, avg);
 }
 
-Noise::Noise(int type, const double* params, double avg) {
-	Initialize(type, avg, params);
+Noise::Noise(int type, const double* params, double avg, bool deep_copy_params) {
+	Initialize(type, avg, params, deep_copy_params);
 }
 
-void Noise::Initialize(int type, double avg, const double* params, bool deep_copy) {
+void Noise::Initialize(int type, double avg, const double* params, bool deep_copy_params) {
 	_avg = avg;
 	_type = type;
 	_num_sampled = 0;
-	NumParams(true, params);
+	_num_params = NumParams(true, params);
 #if FORCE_DEEP_COPY==0:
-	if (deep_copy) {
+	if (deep_copy_params) {
 #endif
 		delete[] _params;
 		if (_num_params > 0) {
-			_params = new double[NumParams()];
-			for (int i = 0; i < NumParams(); i++) {
+			_params = new double[_num_params];
+			for (int i = 0; i < _num_params; i++) {
 				_params[i] = params[i];
 			}
 		}
@@ -48,11 +48,11 @@ void Noise::CopyFrom(const Noise &old_noise, bool deep_copy) {
 	_avg = old_noise.GetAverage();
 	_type = old_noise.GetType();
 	_num_sampled = 0;
-	NumParams(true);
+	_num_params = NumParams(true, old_noise.GetParameters());
 	if (deep_copy) {
 		delete[] _params;
-		_params = new double[NumParams()];
-		for (int i = 0; i < NumParams(); i++) {
+		_params = new double[_num_params];
+		for (int i = 0; i < _num_params; i++) {
 			_params[i] = old_noise.GetParameters()[i];
 		}
 	}
@@ -115,6 +115,9 @@ int Noise::NumParams(bool force_calc, const double* params) {
 			}
 			else {
 				_num_params = params[0] + 1;
+				if (_num_params < 2) {
+					std::cout << "ERROR: number of parameters with NoiseTypes::SORTED_LIST has to be at least 2 (" << _num_params << " given)" << std::endl;
+				}
 			}
 		}
 	}
@@ -217,10 +220,15 @@ void Noise::Sample(int num_samples, double* result) {
 				}
 				std::random_device _rd{};
 				std::mt19937 _gen{ _rd() };
+				if (_xerr <= 0) {
+					std::cout << "ERROR in Noise::Sample() - type = NoiseTypes::WHITE_CUSTOM : normal distribution with sigma<=0"
+						    << "\n      seed = " << _rnd << " -> x = " << _xavg << " -> dy = " << _yerr << " -> sigma = " << _xerr << std::endl;
+				}
 				std::normal_distribution<> d{ _xavg, _xerr };
 				double val = d(_gen);
 				if (val > _params[3 * int(_params[1]) - 1]) {
-					int cacca = -1;
+					std::cout << "WARNING in Noise::Sample() - type = NoiseTypes::WHITE_CUSTOM : value (" << val 
+						<< ") out of expected boundaries (0, " << _params[3 * int(_params[1]) - 1] << ")" << std::endl;
 				}
 				result[i] = val;
 			}

@@ -138,6 +138,46 @@ int Simulation::GetParam_NumSites(bool force_calc) const
 	return _params.NumSites(force_calc);
 }
 
+double Simulation::GetDerivedParam_CritGamma() const
+{
+	return _params.CalcCriticalGamma();
+}
+
+double Simulation::GetDerivedParam_PsiMin() const
+{
+	return _params.CalcPsiMin();
+}
+
+double Simulation::GetDerivedParam_GMax() const
+{
+	return _params.CalcGMax();
+}
+
+double Simulation::GetDerivedParam_PsiFromGNorm(double norm_g) const
+{
+	return _params.CalcPsiFromNormGlassiness(norm_g);
+}
+
+double Simulation::GetDerivedParam_AlphaFromGNorm(double norm_g) const
+{
+	return _params.CalcAlphaFromNormGlassiness(norm_g);
+}
+
+double Simulation::GetDerivedParam_CritKFromAlpha(double alpha) const
+{
+	return _params.CalcCriticalKFromAlpha(alpha);
+}
+
+double Simulation::GetDerivedParam_CritStrainFromAlpha(double alpha) const
+{
+	return _params.CalcCriticalStrainFromAlpha(alpha);
+}
+
+double Simulation::GetDerivedParam_YieldStrainFromAlpha(double alpha) const
+{
+	return _params.CalcYieldStrainFromAlpha(alpha);
+}
+
 void Simulation::Initialize()
 {
 #if DEBUG_MODE:
@@ -226,7 +266,7 @@ void Simulation::InitializeAlpha() {
 					}
 				}
 #endif
-				_alpha[i][j] = _params.GetAlphaFromNormGlassiness(_normglassiness[i][j]);
+				_alpha[i][j] = _params.CalcAlphaFromNormGlassiness(_normglassiness[i][j]);
 #if CLIP_ALPHA_POSMIN
 				if (_min_pos_alpha < 0 || (_alpha[i][j] > 0 && _alpha[i][j] < _min_pos_alpha)) {
 					_min_pos_alpha = _alpha[i][j];
@@ -256,7 +296,7 @@ void Simulation::InitializeAlpha() {
 	std::cout << "Now proceeding with validation step..." << std::endl;
 #endif
 	if (_params.ForbidUnphysicalAlpha) {
-		max_alpha = _params.GetAlphaFromNormGlassiness(1.0 - GLASSY_EPS);
+		max_alpha = _params.CalcAlphaFromNormGlassiness(1.0 - GLASSY_EPS);
 	}
 	if (_min_pos_alpha < 0) {
 		_min_pos_alpha = ALPHA_EPS;
@@ -533,7 +573,7 @@ double Simulation::GetGMax()
 
 double Simulation::GetAlphaFromNormGlassiness(double norm_g)
 {
-	return _params.GetAlphaFromNormGlassiness(norm_g);
+	return _params.CalcAlphaFromNormGlassiness(norm_g);
 }
 
 double Simulation::GetMeanFieldGamma(double rate) const
@@ -567,7 +607,7 @@ int Simulation::CountUnphysicalSites()
 #if DEBUG_MODE
 	int check_res = 0;
 #endif
-	double max_alpha = _params.GetAlphaFromNormGlassiness(1);
+	double max_alpha = _params.CalcAlphaFromNormGlassiness(1);
 	for (int i = 0; i < _params.NumSites(); i++) {
 		bool is_unphysical = false;
 		for (int j = 0; j < _nn_number[i]; j++) {
@@ -696,7 +736,11 @@ void Simulation::GetNNAddress(int site, int** address, int* number, bool force_c
 		if (force_calc) {
 			if (num_addresses > 0) {
 				//address = new int[num_addresses];
+#if COORDS_IN_HEAP
+				int* site_coord = new int[N_DIM];
+#else
 				int site_coord[N_DIM];
+#endif
 				int cur_idx = 0;
 				_params.GetSiteCoordinates(site, site_coord);
 				for (int i = 0; i < N_DIM; i++) {
@@ -728,6 +772,10 @@ void Simulation::GetNNAddress(int site, int** address, int* number, bool force_c
 					}
 				}
 				_nn_address[site] = *address;
+#if COORDS_IN_HEAP
+				delete[] site_coord;
+				site_coord = NULL;
+#endif
 			}
 		}
 		else

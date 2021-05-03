@@ -15,6 +15,8 @@
 #include <stdio.h>
 #include <thread>
 #include <complex>
+#include <shlwapi.h>
+#include <intrin.h>
 #include "CImg.h"
 #include "INIReader.h"
 

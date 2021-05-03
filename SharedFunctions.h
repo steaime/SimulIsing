@@ -74,10 +74,11 @@ int Correlate3D(double*** v, int len1, int len2, int len3, double* res, int* x =
 void ExportDataToFile(double* x, double* y, int num_data, std::string out_file);
 void ExportDataToRawBinary(bool* x, int* shape, int dimensions, std::string out_file);
 void ExportDataToRawBinary(double* x, int* shape, int dimensions, std::string out_file);
-void ImportDataFromRawBinary(std::string in_file, double* x, int64_t &num_vals, int64_t max_vals = -1);
+void ImportDataFromRawBinary(std::string in_filename, double* x, int64_t& num_vals, int64_t max_vals = -1);
+void ImportDataFromRawBinary(std::fstream *in_file, double* x, int64_t& num_vals, int64_t max_vals = -1, bool close_after = true, char px_format = 'd', bool swap_endian = false);
 
 std::fstream OpenRawBinary(std::string in_file, char* hdr_bytes, int hdr_len);
-std::fstream OpenRawBinary(std::string in_file, int32_t &num_imgs, int64_t &num_px);
+std::fstream OpenRawBinary(std::string in_file, int32_t &num_imgs, int64_t &num_px, int hdr_len = -1);
 int32_t Int32FromCharArray(char* bytes);
 int64_t Int64FromCharArray(char* bytes);
 void DoubleToCharArray(double value, char* bytes);
@@ -93,5 +94,31 @@ int FileCountLines(std::string sFileName);
 int FileLoadValues(std::string sFileName, double* pdValues);
 int FileLoadMultiColumn(std::string sFileName, int iNumCol, double** ppdValues);
 int FileLoadSingleColumn(std::string sFileName, int iNumCol, int iColIdx, double* pdValues);
+
+bool CopyFileBinary(const char* SRC, const char* DEST);
+bool CopyFileToFolder(std::string source_filepath, std::string dest_folder);
+std::string FilenameFromPath(std::string full_path, bool remove_ext = false);
+std::string GetExePath();
+std::string GetExeDir();
+std::string GetParentDirectory(std::string folder_path, int num_generations = 1);
+std::string JoinPath(std::string root, std::string parent, std::string subfolder = "");
+bool CheckPathRelative(std::string path_string);
+bool CheckFileExists(std::string file_path);
+
+std::string NowToString();
+
+template <typename T>
+T EndianSwap(T val) {
+    T retVal;
+    char* pVal = (char*)&val;
+    char* pRetVal = (char*)&retVal;
+    int size = sizeof(T);
+    for (int i = 0; i < size; i++) {
+        pRetVal[size - 1 - i] = pVal[i];
+    }
+
+    return retVal;
+}
+
 
 #endif // !SHARED_FUNCTIONS_H

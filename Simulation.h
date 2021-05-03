@@ -33,6 +33,15 @@ public:
 	double GetParam_AlphaAvg() const;
 	int GetParam_NumSites(bool force_calc = false) const;
 
+	double GetDerivedParam_CritGamma() const;
+	double GetDerivedParam_PsiMin() const;
+	double GetDerivedParam_GMax() const;
+	double GetDerivedParam_PsiFromGNorm(double norm_g) const;
+	double GetDerivedParam_AlphaFromGNorm(double norm_g) const;
+	double GetDerivedParam_CritKFromAlpha(double alpha) const;
+	double GetDerivedParam_CritStrainFromAlpha(double alpha) const;
+	double GetDerivedParam_YieldStrainFromAlpha(double alpha) const;
+
 	void CopyParams(IsingParameters *copyTo) const;
 	void CopyLatticeShape(int *copyTo) const;
 	//Noise GetInitNoise() const;

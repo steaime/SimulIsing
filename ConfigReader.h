@@ -30,8 +30,10 @@ public:
 	double dFastSitesRelThr = MAX_SOLID_RATE_RATIO;
 	double dDiffWeightRate = 0;
 	double dDiffWeightChi = 0;
-	double pdAlphaParams[NOISE_MAXPARAMS];
-	double pdInitParams[NOISE_MAXPARAMS];
+	//double pdAlphaParams[NOISE_MAXPARAMS];			// TODO: change this to dynamic!
+	//double pdInitParams[NOISE_MAXPARAMS];			// TODO: change this to dynamic!
+	double *pdAlphaParams = NULL;
+	double *pdInitParams = NULL;
 	double pdTempProtParams[INI_TPROT_MAXPARAMS];
 
 	int iNumSimulations = 0;
@@ -41,6 +43,7 @@ public:
 	int iAlphaNoiseType = NoiseTypes::NONOISE;
 	int iRateAvgType = AvgType::ARITMETIC;
 	int iSBNoiseAvgType = AvgType::GEOMETRIC;
+	int iInitFileHdrLen = 0;
 	int iMaxIter = DEF_SIMSTEP_MAX_ITER;
 	int iEqRunNum = DEF_EQ_RUN_NUM;
 	int iTempProt = TemperatureProtocol::CONSTANT;
@@ -59,6 +62,7 @@ public:
 	bool bPrintStd = true;
 	bool bSaveAlphaSnapshot = false;
 	bool bSaveInitSnapshot = false;
+	bool bInitFileSwapEndian = false;
 	bool bPrintNloops = true;
 	bool bPrintFastSites = true;
 	bool bMuteOut = false;
@@ -92,10 +96,19 @@ public:
 	std::string fstat_prefix = "stat_";
 	std::string fparams = "sim_params.txt";
 
+	char cInitFileFmt = 'd';
+
 	void ReadINI(std::string sParamFile);
 
 	int GetNumGamma() const;
 	void GetListGamma(double* pdOut) const;
+	int GetNumSites() const;
+
+	void Clear();
+
+private:
+
+	bool _init;
 };
 
 #endif

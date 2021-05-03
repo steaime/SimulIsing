@@ -51,17 +51,21 @@ public:
 	double GetPsiMin();
 	double GetGMax();
 	double GetCriticalGamma();
+	double CalcPsiMin() const;
+	double CalcGMax() const;
+	double CalcCriticalGamma() const;
 
-	double GetPsiFromNormGlassiness(double norm_g);
-	double GetAlphaFromNormGlassiness(double norm_g);
-	double GetAlphaFromPsi(double psi_val);
+	double CalcPsiFromNormGlassiness(double norm_g) const;
+	double CalcAlphaFromNormGlassiness(double norm_g) const;
+	double CalcAlphaFromPsi(double psi_val) const;
 	double GetPsiFromAlpha(double alpha);
 	double GetGlassinessFromAlpha(double alpha = BAD_VALUE);
 	double GetNormGlassinessFromAlpha(double alpha = BAD_VALUE);
 	double GetDistFromGmax(double alpha = BAD_VALUE);
-	double GetCriticalStrainFromAlpha(double alpha);
-	double GetCriticalKFromAlpha(double alpha);
+	double CalcCriticalStrainFromAlpha(double alpha) const;
+	double CalcCriticalKFromAlpha(double alpha) const;
 	double GetYieldStrainFromAlpha(double alpha);
+	double CalcYieldStrainFromAlpha(double alpha) const;
 
 	double GetMeanFieldGamma(double rate, double custom_alpha = -1) const;
 	

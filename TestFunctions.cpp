@@ -134,64 +134,22 @@ void check_norm_mfparams(Simulation* my_sim, std::ofstream* fout)
 	double* dst_from_gnorm = new double[numpts];
 	LogSpaceNum(xmin, xmax, numpts, dst_from_gnorm);
 
-	IsingParameters my_param;
-	my_sim->CopyParams(&my_param);
-	my_param.UpdateDerivedParams();
-
-	*fout << "COSTANT BASE PARAMETERS:\nK\t= " << my_param.K << "\nn\t= " << my_param.n << "\nTau0\t= " << my_param.Tau0 << "\nOmega\t= "
-		<< my_param.Omega << "\nBeta\t= " << my_param.Beta << "\nCONSTANT DERIVED PARAMETERS:\nGamma0\t= " << my_param.Gamma0
-		<< "\nGammac\t= " << my_param.GetCriticalGamma() << "\npsi_min\t= " << my_param.GetPsiMin() << "\ng_max\t= " << my_param.GetGMax() << std::endl;
-#if DEBUG_MODE
-	*fout << "\nVARIABLE (ALPHA-DEPENDENT) PARAMETERS:\n1-g/gmax\t1-gnorm(alpha)\tg\tg(alpha)\tpsi(g)\tpsi(alpha)\talpha(psi)\talpha(g)\tKc\tgammac\tgammay(alpha)"
-		<< "\tdiff_1-gnorm\tdiff_g\tdiff_psi\tdiff_alpha" << std::endl;
-	double tot_sqrdiff = 0;
-#else
+	*fout << "COSTANT BASE PARAMETERS:\nK\t= " << my_sim->GetParam_K() << "\nn\t= " << my_sim->GetParam_n() << "\nTau0\t= " << my_sim->GetParam_Tau0() << "\nOmega\t= "
+		<< my_sim->GetParam_Omega() << "\nBeta\t= " << my_sim->GetParam_Beta() << "\nCONSTANT DERIVED PARAMETERS:\nGamma0\t= " << 1.0/my_sim->GetParam_Tau0()
+		<< "\nGammac\t= " << my_sim->GetDerivedParam_CritGamma() << "\npsi_min\t= " << my_sim->GetDerivedParam_PsiMin() << "\ng_max\t= " << my_sim->GetDerivedParam_GMax() << std::endl;
 	*fout << "\nVARIABLE (ALPHA-DEPENDENT) PARAMETERS:\n1-g/gmax\tg\tpsi\talpha\tKc\tgammac\tgammay(alpha)" << std::endl;
-#endif
 	for (int i = 0; i < numpts; i++) {
 		double curx = dst_from_gnorm[i];
-		double curg = (1 - curx) * my_param.GetGMax();
-		double curp = my_param.GetPsiFromNormGlassiness(1 - curx);
-		double cura = my_param.GetAlphaFromNormGlassiness(1 - curx);
-#if DEBUG_MODE
-		double curx_test = my_param.GetDistFromGmax(cura);
-		double curg_test = my_param.GetGlassinessFromAlpha(cura);
-		double curp_test = my_param.GetPsiFromAlpha(cura);
-		double cura_test = my_param.GetAlphaFromPsi(curp);
-		*fout << curx << "\t" << curx_test << "\t" << curg << "\t" << curg_test << "\t" << curp << "\t" << curp_test << "\t" << cura_test << "\t" << cura
-			<< "\t" << my_param.GetCriticalKFromAlpha(cura) << "\t" << my_param.GetCriticalStrainFromAlpha(cura) << "\t" << my_param.GetYieldStrainFromAlpha(cura) 
-			<< "\t" << curx - curx_test << "\t" << curg - curg_test << "\t" << curp - curp_test << "\t" << cura - cura_test << std::endl;
-		tot_sqrdiff += pow(curx - curx_test, 2) + pow(curg - curg_test, 2) + pow(curp - curp_test, 2) + pow(cura - cura_test, 2);
-#else
-		*fout << curx << "\t" << curg << "\t" << curp << "\t" << cura << "\t" << my_param.GetCriticalKFromAlpha(cura) << "\t" << 
-			my_param.GetCriticalStrainFromAlpha(cura) << "\t" << my_param.GetYieldStrainFromAlpha(cura) << std::endl;
-#endif
+		double curg = (1 - curx) * my_sim->GetDerivedParam_GMax();
+		double curp = my_sim->GetDerivedParam_PsiFromGNorm(1 - curx);
+		double cura = my_sim->GetDerivedParam_AlphaFromGNorm(1 - curx);
+		*fout << curx << "\t" << curg << "\t" << curp << "\t" << cura << "\t" << my_sim->GetDerivedParam_CritKFromAlpha(cura) << "\t" << 
+			my_sim->GetDerivedParam_CritStrainFromAlpha(cura) << "\t" << my_sim->GetDerivedParam_YieldStrainFromAlpha(cura) << std::endl;
 	}
-#if DEBUG_MODE
-	*fout << "\nTotal squared diff : " << tot_sqrdiff << std::endl;
-#endif
 
 	delete[] dst_from_gnorm;
 	dst_from_gnorm = NULL;
 
-#if 0
-	if (out_fname != "") {
-		double dfng_min = 1e-5, dfng_max = 1e2;
-		int _ppd = 50;
-		int num_data = LogSpace_CalcNum(dfng_min, dfng_max, _ppd);
-		double* dfng_arr = new double(num_data+1);
-		num_data = LogSpace(dfng_min, dfng_max, _ppd, dfng_arr);
-		std::ofstream fout;
-		fout.open(out_fname, 'w');
-		fout << "CONSTANT PARAMETERS:" << std::endl;
-		fout << ""
-		fout << "#\t1-gnorm\tgnorm\tg\tpsi\talpha(g)\t" << std::endl;
-
-		fout.close();
-		delete[] dfng_arr;
-		dfng_arr = NULL;
-	}
-#endif
 }
 
 bool test_roots_P3(double R1, double R2, double R3, double Pref) {

@@ -14,7 +14,8 @@ int main(int argc, char* argv[]) {
 		all_args.assign(argv + 1, argv + argc);
 	}
 	else {
-		first_arg = std::string(DEF_INI_FILE);
+		std::string exe_dir = GetExeDir();
+		first_arg = JoinPath(exe_dir, DEF_INI_FILE);
 	}
 
 	int iCompare = std::distance(all_args.begin(), std::find(all_args.begin(), all_args.end(), "-COMPARE"));
@@ -28,7 +29,12 @@ int main(int argc, char* argv[]) {
 #endif
 
 #ifndef DEBUG_COMPARE:
+	if (!CheckFileExists(first_arg)) {
+		std::cout << "ERROR: configuration file '" << first_arg << "' not found. Execution aborted" << std::endl;
+		return 1;
+	}
 	ConfigParams config_reader(first_arg);
+	CopyFileToFolder(first_arg, config_reader.out_folder);
 	InitializeSimulations(config_reader);
 	if (all_args.size() > 0 && iCompare < all_args.size()-1) {
 		SweepAndCompare(config_reader, all_args[iCompare + 1]);
@@ -327,12 +333,16 @@ void SetupSimulation(Simulation* my_sim, std::string sParamFile) {
 void SetupSimulation(Simulation * my_sim, const ConfigParams & params)
 {
 	IsingParameters myParams(params);
+#if 0
 	double *_pdInitParams = new double[NOISE_MAXPARAMS];		// This pointer is destroyed during Noise initialization.
 																// Not the cleanest approach...
 	for (int i = 0; i < NOISE_MAXPARAMS; i++) {
 		_pdInitParams[i] = params.pdInitParams[i];
 	}
 	Noise init_conditions(params.iInitType, _pdInitParams, params.dInitAvg);
+#else
+	Noise init_conditions(params.iInitType, params.pdInitParams, params.dInitAvg);
+#endif
 	MCParams tstep_params(params);
 	SetupSimulation(my_sim, myParams, init_conditions, tstep_params, params.bForceMeanField);
 	if (params.bSaveAlphaSnapshot) {
@@ -1648,8 +1658,16 @@ void print_sim_params(std::string out_file_name, int sim_number) {
 		}
 		else if (cur_params.AlphaNoise.NumParams() > 1) {
 			fout << "{";
-			for (int i = 0; i < cur_params.AlphaNoise.NumParams(); i++) {
+			int num_print_param = cur_params.AlphaNoise.NumParams();
+			if (num_print_param > MAX_PRINT_PARAMS) num_print_param = MAX_PRINT_PARAMS;
+			for (int i = 0; i < num_print_param; i++) {
 				fout << cur_params.AlphaNoise.GetParameter(i) << ";";
+			}
+			if (num_print_param < cur_params.AlphaNoise.NumParams()) {
+				fout << "...";
+				for (int i = cur_params.AlphaNoise.NumParams()-3; i < cur_params.AlphaNoise.NumParams(); i++) {
+					fout << ";" << cur_params.AlphaNoise.GetParameter(i);
+				}
 			}
 			fout << "}";
 		}
@@ -1659,8 +1677,16 @@ void print_sim_params(std::string out_file_name, int sim_number) {
 		}
 		else if (init_noise.NumParams() > 1) {
 			fout << "{";
-			for (int i = 0; i < init_noise.NumParams(); i++) {
+			int num_print_pinit = init_noise.NumParams();
+			if (num_print_pinit > MAX_PRINT_PARAMS) num_print_pinit = MAX_PRINT_PARAMS;
+			for (int i = 0; i < num_print_pinit; i++) {
 				fout << init_noise.GetParameter(i) << ";";
+			}
+			if (num_print_pinit < init_noise.NumParams()) {
+				fout << "...";
+				for (int i = init_noise.NumParams() - 3; i < init_noise.NumParams(); i++) {
+					fout << ";" << init_noise.GetParameter(i);
+				}
 			}
 			fout << "}";
 		}
@@ -1682,7 +1708,7 @@ void print_sim_params(std::string out_file_name, int sim_number) {
 		fout << "\t" << ::simList[i].GetForceMeanField();
 		fout << "\t" << cur_params.Gamma0 << "\t" << cur_params.Gammac << "\t" << cur_params.gammac 
 			 << "\t" << cur_params.Kc << "\t" << cur_params.psi << "\t" << cur_params.Glassiness_MF 
-			 << "\t" << cur_params.NormDistFromGmax_MF << "\t" << cur_params.GetAlphaFromNormGlassiness(1)
+			 << "\t" << cur_params.NormDistFromGmax_MF << "\t" << cur_params.CalcAlphaFromNormGlassiness(1)
 			 << "\t" << ::simList[i].CountUnphysicalSites() << std::endl;
 
 		if (i == 0) {

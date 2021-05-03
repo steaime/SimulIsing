@@ -15,7 +15,7 @@ class Noise
 public:
 	Noise();
 	Noise(int type, double avg = 0.0);
-	Noise(int type, const double* params, double avg = 0.0);
+	Noise(int type, const double* params, double avg = 0.0, bool deep_copy_params = true);
 	~Noise();
 
 	double GetAverage() const;
@@ -27,7 +27,7 @@ public:
 	double SingleSample();
 
 	//void Initialize(ConfigParams &conf_reader);
-	void Initialize(int type, double avg = 0.0, const double* params = NULL, bool deep_copy = false);
+	void Initialize(int type, double avg = 0.0, const double* params = NULL, bool deep_copy_params = true);
 	void CopyFrom(const Noise &old_noise, bool deep_copy = false);
 	int NumParams(bool force_calc = false, const double* params = NULL);
 

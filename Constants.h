@@ -8,8 +8,11 @@
 #define DEBUG_MODE 0
 #define FORCE_DEEP_COPY 1	// if 1: When copying/initializing classes such as Noise, IsingParameters or MontecarloParameters,
 							//       always deep copy source vectors (don't transfer reference)
+#define COORDS_IN_HEAP 1    // if 1: N_DIM-dimensional coordinate vectors will be allocated on the heap
+							//       (using new int[N_DIM], and destroyed using delete[])
+							// if 0: coordinate vectors will be allocated on the stack (using int coords[N_DIM])
 
-#define N_DIM 2			// Number of lattice dimensions.
+#define N_DIM 4			// Number of lattice dimensions.
 
 #define RATE_EPS 1e-20  // Minimum rate accepted (rates cannot be zero or negative).
 						// When rates get 0 or negative, they are set to RATE_EPS
@@ -32,7 +35,7 @@
 #define NOISE_MAXPARAMS 2097161 // maximum number of noise parameters allowed in general (either from INI file or from RAW file)
 								// this number is 512*512 (our largest simulations) *8 (number of nearest neighbors in d=4) +1 (to store the number of parameters)
 #define INI_TPROT_MAXPARAMS 5
-
+#define MAX_PRINT_PARAMS 30		// Maximum number of parameters to print when logging parameters to file
 
 
 // Correlation parameters
@@ -98,7 +101,7 @@ static std::complex<double> ComplexCubicRoot1[3] = { 1.0, std::complex<double>{-
 
 
 // Default output parameters
-#define DEF_INI_FILE "D:\\steaime\\Documents\\Research\\Projects\\SoftGlasses\\Ising\\config\\simParams.ini"
+#define DEF_INI_FILE "simParams.ini" //"D:\\steaime\\Documents\\Research\\Projects\\SoftGlasses\\Ising\\config\\simParams.ini"
 
 
 enum TemperatureProtocol {
