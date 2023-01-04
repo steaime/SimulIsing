@@ -1330,6 +1330,9 @@ std::fstream OpenRawBinary(std::string in_file, int32_t& num_imgs, int64_t& num_
 		num_imgs = Int32FromCharArray(hdr_bytes);
 		num_px = Int64FromCharArray(&hdr_bytes[4]);
 	}
+	else if (hdr_len == 0) {
+		// Do nothing, there is no header to read
+	}
 	else {
 		std::cout << "ERROR in OpenRawBinary(): invalid header size (accepted: 0|4|8|12, given:" << hdr_len << ")" << std::endl;
 	}
@@ -1558,6 +1561,9 @@ bool CopyFileBinary(const char* SRC, const char* DEST)
 bool CopyFileToFolder(std::string source_filepath, std::string dest_folder)
 {
 	std::string dest_fpath = dest_folder + FilenameFromPath(source_filepath);
+	if (dest_fpath == source_filepath) {
+		dest_fpath = dest_folder + "_copy_" + FilenameFromPath(source_filepath);
+	}
 	return CopyFileBinary((char*)source_filepath.c_str(), (char*)dest_fpath.c_str());
 }
 

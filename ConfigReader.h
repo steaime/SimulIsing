@@ -44,6 +44,7 @@ public:
 	int iRateAvgType = AvgType::ARITMETIC;
 	int iSBNoiseAvgType = AvgType::GEOMETRIC;
 	int iInitFileHdrLen = 0;
+	int iAlphaFileHdrLen = 0;
 	int iMaxIter = DEF_SIMSTEP_MAX_ITER;
 	int iEqRunNum = DEF_EQ_RUN_NUM;
 	int iTempProt = TemperatureProtocol::CONSTANT;
@@ -52,6 +53,8 @@ public:
 	int iRefFileColIdxRate = 1;
 	int iRefFileColIdxChi = 2;
 	int piLatticeShape[INI_MAXNUMDIM];
+
+	std::time_t iRandSeed = -1;
 
 	bool bPreshear = false;
 	bool bAscDesc = false;
@@ -62,6 +65,7 @@ public:
 	bool bPrintStd = true;
 	bool bSaveAlphaSnapshot = false;
 	bool bSaveInitSnapshot = false;
+	bool bAlphaFileSwapEndian = false;
 	bool bInitFileSwapEndian = false;
 	bool bPrintNloops = true;
 	bool bPrintFastSites = true;
@@ -97,6 +101,7 @@ public:
 	std::string fparams = "sim_params.txt";
 
 	char cInitFileFmt = 'd';
+	char cAlphaFileFmt = 'd';
 
 	void ReadINI(std::string sParamFile);
 

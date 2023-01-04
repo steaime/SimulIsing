@@ -51,6 +51,13 @@ MCParams::MCParams(const ConfigParams & params)
 }
 
 void MCParams::Initialize(const ConfigParams & params) {
+#if DEBUG_MODE
+	std::cout << "   ... MCParams::Initialize() with ConfigParams [T=" << params.dTemperature << "; noise=" << params.dTempNoiseCoeff;
+	if (params.bTempNoiseLog) std::cout << " (log)";
+	std::cout << "; eps=" << params.dConvPrecision;
+	if (params.bLogDev) std::cout << " (log)";
+	std::cout << "; Nmax=" << params.iMaxIter << "; Nrun=" << params.iEqRunNum << "; prot=" << params.iTempProt << "]" << std::endl;
+#endif
 	_eff_T = params.dTemperature;
 	_noise_coeff = params.dTempNoiseCoeff;
 	_noise_log = params.bTempNoiseLog;
@@ -67,6 +74,13 @@ void MCParams::Initialize(const ConfigParams & params) {
 	SetTempProtocol(_T_protocol, tmp_params);
 	delete[] tmp_params;
 	tmp_params = NULL;
+#if DEBUG_MODE
+	std::cout << "       MCParams::Initialize() ended [T=" << _eff_T << "; noise=" << _noise_coeff;
+	if (_noise_log) std::cout << " (log)";
+	std::cout << "; eps=" << _conv_prec;
+	if (_log_dev) std::cout << " (log)";
+	std::cout << ": Nmax=" << _max_iter << "; Nrun=" << _eq_run_number << "; prot=" << _T_protocol << "]" << std::endl;
+#endif
 }
 
 void MCParams::CopyFrom(const MCParams &params) {

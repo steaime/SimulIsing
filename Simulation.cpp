@@ -195,6 +195,15 @@ void Simulation::Initialize()
 #if DEBUG_MODE:
 	std::cout << "   ... initializing auxiliary variables" << std::endl;
 #endif
+	int iValidate = ValidateParams();
+#if DEBUG_MODE
+	if (iValidate > 0) {
+		std::cout << "   !!! WARNING: Simulation::ValidateParams() returned error code " << iValidate << std::endl;
+	}
+	else {
+		std::cout << "   ... Simulation::ValidateParams() returned no errors" << std::endl;
+	}
+#endif
 	_count_iter = 0;
 	_rate_step = new double[_params.NumSites()];
 	_status = SimStatus::INITIALIZED;
@@ -500,6 +509,18 @@ int Simulation::ID() {
 
 int Simulation::StepCount() {
 	return _count_iter;
+}
+
+int Simulation::ValidateParams() const
+{
+	int iRes = 0;
+	if (_mc_params.GetEquilibrationRunNumber() < 1) {
+		iRes += 1;
+#if VERBOSE
+		std::cout << "Simulation::ValidateParams() >>> MCParams.GetEquilibrationRunNumber() returned " << _mc_params.GetEquilibrationRunNumber() << std::endl;
+#endif
+	}
+	return iRes;
 }
 
 void Simulation::CopyInitNoise(Noise * copyTo) const
@@ -989,6 +1010,7 @@ int Simulation::SimStep(bool ForceUpdateAvRate, double* rate_change) {
 	_mc_params.RandomJumps(_rate_step, _target_rates, _params.NumSites());
 	bool bln_accept = true; // Obsolete variable. In the original version there was
 							// an extra Montecarlo accept/reject decision
+							// TODO MC: change this!
 	if (bln_accept) {
 		if (rate_change != NULL) {
 			for (int i = 0; i < _params.NumSites(); i++) {
@@ -1054,6 +1076,11 @@ int Simulation::AdjustLattice(double** eqDetails, bool** blnFastSites) {
 		ratechange = NULL;
 	}
 	int cumul_nloops = 0;
+#if DEBUG_MODE
+	if (_mc_params.GetEquilibrationRunNumber() < 1) {
+		std::cout << "[!] WARNING: Simulation.MCParams.GetEquilibrationRunNumber()==" << _mc_params.GetEquilibrationRunNumber() << std::endl;
+	}
+#endif
 	for (int i = 0; i < _mc_params.GetEquilibrationRunNumber(); i++) {
 		int nloops = 0;
 		while (_mc_params.Equilibrated(_rates, _target_rates, _params.NumSites())==false)

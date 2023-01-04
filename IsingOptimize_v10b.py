@@ -10,22 +10,22 @@ from matplotlib.backends.backend_pdf import PdfPages
 ### SAMPLE SELECTION ###
 
 SAMPLE_SEL = 'LUDOX45'
-save_subfolder = 'run23_lognorm'
+save_subfolder = '_gaussDistr_noiseDependence_moreStat2'
 
 plot_range = None
 defNoiseG = False
 defgFromFile = False
 defGammaPPD = 20
-defAlphaNoiseType = 3 # 2: Gauss, 3: LogNorm, 4: Custom
-defPrintRateSTD = True
+defAlphaNoiseType = 2 # 2: Gauss, 3: LogNorm, 4: Custom
+defPrintRateSTD = False
 defForbidUnphys = False
 defPrintNLoops = True
 defPreshear = True
 defAscDesc = False
 defSaveRateHist = True
-defSaveAlphaHist = False
+defSaveAlphaHist = True
 defSaveRawSnapshots = False
-NSites = 512
+NSites = 256
 NumSim = 1
 defMaxNumIterations = 10000
 
@@ -38,9 +38,10 @@ if (SAMPLE_SEL == 'LUDOX45'):
         # This is the right Gnorm for Gaussian distribution
         defGnorm = [0.7]
         # This is for paper figure with dependence on disorder
-        #defAVar = [0, 1e-6, 1e-5, 1e-4, 2e-4, 5e-4, 0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.18]
+        defAVar = [0.19, 0.2, 0.21, 0.22]
+        #defAVar = [0, 0.001, 0.003, 0.01, 0.02, 0.05, 0.07, 0.1, 0.12, 0.14, 0.16, 0.18]
         # This is the right disorder for Gaussian distribution
-        defAVar = [0.18]
+        #defAVar = [0.18]
     elif defAlphaNoiseType==3:
         defGnorm = [0.9]
         defAVar = [0.1]
@@ -53,23 +54,31 @@ if (SAMPLE_SEL == 'LUDOX45'):
     defgFromFile = False
     defGammaMin = 0.02#0.01#0.005
     defGammaMax = 0.1#0.3#0.5
-    defGammaPPD = 100#500
+    defGammaPPD = 500
     FastSitesThr = 7
     #defPreshear = False
     #defAscDesc = True
 elif (SAMPLE_SEL == 'LUDOX41_S6'):
-    defK = [0.14]
-    defn = [1.8]
-    defTau0 = [8000]
-    defAAvg = [None]
-    defGnorm = [0.05]#[0.01, 0.02, 0.05, 0.1, 0.2, 0.5]
-    defAVar = [0.01]#[0.01, 0.03, 0.1, 0.3]
+    if True:
+        defK = [0.013]
+        defn = [1.1]
+        defTau0 = [10000]
+        defAAvg = [None]
+        defGnorm = [0.2]
+        defAVar = [0.05]
+    else:
+        defK = [0.4]#[0.2, 0.3, 0.4]
+        defn = [2.0]
+        defTau0 = [8000]
+        defAAvg = [None]
+        defGnorm = [-0.1]#[-0.1, -0.05, 0, 0.05, 0.1]#[0.01, 0.02, 0.05, 0.1, 0.2, 0.5]
+        defAVar = [0.35]
     defOmega = 3.14
-    defGammaMin = 0.001
+    defGammaMin = 0.0001
     defGammaMax = 1.0
     defGammaPPD = 500
     FastSitesThr = 2
-    plot_range = [[0.01, 0.2], [1e-4, 1e-2]]
+    plot_range = [[0.01, 0.3], [1e-4, 1e-1]]#[[0.01, 0.2], [1e-4, 1e-2]]
 elif (SAMPLE_SEL == 'LUDOX41_S6_Nopresh'):
     defK = [61.6]
     defn = [3.0]
@@ -83,29 +92,34 @@ elif (SAMPLE_SEL == 'LUDOX41_S6_Nopresh'):
     FastSitesThr = 2
     plot_range = [[0.02, 0.04], [1e-4, 1e-2]]
 elif (SAMPLE_SEL == 'PNIPAM_PRESH_T2'):
-    defK = [0.02]
-    defn = [3.2]
-    defTau0 = [70569]
-    defAAvg = [None]
-    defGnorm = [0.988]#[0.984, 0.988]
-    defAVar = [0.15]#[0.15, 0.17]
+    # WARNING: THESE ARE OLD PARAMETERS, FIT TO INTEGRAL TAUs (NOT WEIGHTED AVERAGES)
+    # RESTORE n=3.2 FOR THE GOOD ONES
+    defK = [0.0037]#[0.0023]#[0.003]#[0.00125]#[0.02]
+    defn = [3.0]#[2.0]#[3.2]
+    defTau0 = [50000]#[55555]#[70569]
+    defAAvg = [None]#[5.27e-8]#[6.8e-8]#[None]
+    defGnorm = [0.7]#[0.679]#[0.988]
+    defAVar = [0.1]#[0.125]#[0.15]
     defOmega = 3.14
     defgFromFile = False
     defGammaPPD = 100
     defGammaMin = 0.001
-    defGammaMax = 1.0
+    defGammaMax = 10.0
     FastSitesThr = 2
     #plot_range = [[0.1, 0.7], [1e-5, 1e-1]]
 elif (SAMPLE_SEL == 'PNIPAM_PRESH_T40'):
-    defK = [0.012]
-    defn = [2.0]
-    defTau0 = [55000]
+    # WARNING: THESE ARE OLD PARAMETERS, FIT TO INTEGRAL TAUs (NOT WEIGHTED AVERAGES)
+    # RESTORE n=3.2 FOR THE GOOD ONES*
+    defK = [0.0037]#[0.0023]#[0.003]#[0.02]
+    defn = [3.0]#[2.0]#[3.2]
+    defTau0 = [50000]#[55555]#[70569]
     defAAvg = [None]
-    defGnorm = [0.4]#[0.2, 0.4, 0.6, 0.8]
-    defAVar = [0.2]#[0.005, 0.01, 0.02, 0.05, 0.1, 0.2]
+    defGnorm = [0.1]#[0.4]
+    defAVar = [0.1]#[0.005, 0.01, 0.02, 0.05, 0.1, 0.2]
     defOmega = 0.157
-    defGammaMin = 0.01
-    defGammaMax = 1.0
+    defGammaPPD = 100
+    defGammaMin = 0.001
+    defGammaMax = 10.0
     FastSitesThr = 2
 elif (SAMPLE_SEL == 'EM65'):
     defK = [5e11]#[1e18]#[1.5e14]#[1e9]#[2e24]
@@ -382,6 +396,8 @@ if __name__ == '__main__':
                 #print(iProc, params['alphaHistName'])
                 cur_savename = str(SaveFname).replace('NNNN', str(iProc))
                 GenParamFile(params, iProc, save_name=cur_savename)
+                print("RUN: " + SimProgPath + " " + cur_savename)
+                #sys.exit()
                 proc = subprocess.Popen(SimProgPath + " " + cur_savename, stdout=subprocess.PIPE)
                 proc_list.append(proc)
             for cur_p in proc_list:

@@ -22,7 +22,8 @@ int main(int argc, char* argv[]) {
 	bool bSilentRun = (std::find(all_args.begin(), all_args.end(), "-SILENT") != all_args.end());
 	bool bPauseAfter = (std::find(all_args.begin(), all_args.end(), "-PAUSE") != all_args.end());
 
-	srand(time(NULL));
+	std::time_t rand_seed = time(NULL);
+	srand(rand_seed);
 
 #if DEBUG_MODE
 	check_real_roots();
@@ -34,6 +35,7 @@ int main(int argc, char* argv[]) {
 		return 1;
 	}
 	ConfigParams config_reader(first_arg);
+	config_reader.iRandSeed = rand_seed;
 	CopyFileToFolder(first_arg, config_reader.out_folder);
 	InitializeSimulations(config_reader);
 	if (all_args.size() > 0 && iCompare < all_args.size()-1) {
@@ -176,20 +178,19 @@ void SweepAndSave(const ConfigParams &config_reader) {
 	// Initialize file names (eventually)
 	std::string* hist_names = NULL;
 	std::string* corr_names = NULL;
-	std::string* outraw_names_presh = NULL;
-	std::string* outraw_names_ascdesc = NULL;
+	std::string* outraw_names = NULL;
 	std::string out_hist_alpha = "";
+	std::string out_names = config_reader.out_folder + config_reader.fout_prefix;
+	std::string stats_names = config_reader.out_folder + config_reader.fstat_prefix;
+	std::string fname_prefix = "";
 	if (config_reader.bSaveHist) {
 		hist_names = new std::string[config_reader.iNumSimulations];
 	}
 	if (config_reader.bSaveCorr) {
 		corr_names = new std::string[config_reader.iNumSimulations];
 	}
-	if (config_reader.bSaveRaw && config_reader.bPreshear) {
-		outraw_names_presh = new std::string[config_reader.iNumSimulations];
-	}
-	if (config_reader.bSaveRaw && config_reader.bAscDesc) {
-		outraw_names_ascdesc = new std::string[config_reader.iNumSimulations];
+	if (config_reader.bSaveRaw) {
+		outraw_names = new std::string[config_reader.iNumSimulations];
 	}
 	if (config_reader.bSaveHistAlpha) {
 		if (config_reader.out_folder.back() != '\\') {
@@ -199,6 +200,14 @@ void SweepAndSave(const ConfigParams &config_reader) {
 			out_hist_alpha = config_reader.out_folder + config_reader.histalpha_fname + config_reader.txt_ext;
 		}
 	}
+	if (config_reader.bAscDesc) {
+		fname_prefix = fname_prefix + config_reader.ascdesc_prefix;
+	}
+	if (config_reader.bPreshear) {
+		fname_prefix = fname_prefix + config_reader.preshear_prefix;
+	}
+	out_names = out_names + fname_prefix + "all" + config_reader.txt_ext;
+	stats_names = stats_names + fname_prefix + "all" + config_reader.txt_ext;
 
 	for (int i = 0; i < config_reader.iNumSimulations; i++) {
 		if (config_reader.bSaveHist) {
@@ -217,21 +226,11 @@ void SweepAndSave(const ConfigParams &config_reader) {
 				corr_names[i] = config_reader.out_folder + config_reader.corr_prefix + std::to_string(i) + config_reader.txt_ext;
 			}
 		}
-		if (config_reader.bSaveRaw && config_reader.bPreshear) {
+		if (config_reader.bSaveRaw) {
 			if (config_reader.out_folder.back() != '\\') {
-				outraw_names_presh[i] = config_reader.out_folder + "\\" + config_reader.rawfinal_prefix + config_reader.preshear_prefix + std::to_string(i) + config_reader.raw_ext;
+				outraw_names[i] = config_reader.out_folder + "\\";
 			}
-			else {
-				outraw_names_presh[i] = config_reader.out_folder + config_reader.rawfinal_prefix + config_reader.preshear_prefix + std::to_string(i) + config_reader.raw_ext;
-			}
-		}
-		if (config_reader.bSaveRaw && config_reader.bAscDesc) {
-			if (config_reader.out_folder.back() != '\\') {
-				outraw_names_ascdesc[i] = config_reader.out_folder + "\\" + config_reader.rawfinal_prefix + config_reader.ascdesc_prefix + std::to_string(i) + config_reader.raw_ext;
-			}
-			else {
-				outraw_names_ascdesc[i] = config_reader.out_folder + config_reader.rawfinal_prefix + config_reader.ascdesc_prefix + std::to_string(i) + config_reader.raw_ext;
-			}
+			outraw_names[i] = outraw_names[i] + config_reader.rawfinal_prefix + fname_prefix + std::to_string(i) + config_reader.raw_ext;
 		}
 	}
 
@@ -241,29 +240,17 @@ void SweepAndSave(const ConfigParams &config_reader) {
 	config_reader.GetListGamma(pdGammaList);
 
 	// Run simulations
-	if (config_reader.bAscDesc) {
-		std::string out_names_ad = config_reader.out_folder + config_reader.fout_prefix + config_reader.ascdesc_prefix + "all" + config_reader.txt_ext;
-		std::string stats_names_ad = config_reader.out_folder + config_reader.fstat_prefix + config_reader.ascdesc_prefix + "all" + config_reader.txt_ext;
-		RunStrainSweep(config_reader.iNumSimulations, pdGammaList, iNumGamma, false, true, config_reader.bPrintStd, config_reader.bPrintNloops,
-			config_reader.bPrintFastSites, out_names_ad, &stats_names_ad, hist_names, NULL, corr_names, NULL, outraw_names_ascdesc, out_hist_alpha, config_reader.bMuteOut);
-	}
-	if (config_reader.bPreshear) {
-		std::string out_names = config_reader.out_folder + config_reader.fout_prefix + config_reader.preshear_prefix + "all" + config_reader.txt_ext;
-		std::string stats_names = config_reader.out_folder + config_reader.fstat_prefix + config_reader.preshear_prefix + "all" + config_reader.txt_ext;
-		RunStrainSweep(config_reader.iNumSimulations, pdGammaList, iNumGamma, true, false, config_reader.bPrintStd, config_reader.bPrintNloops,
-			config_reader.bPrintFastSites, out_names, &stats_names, hist_names, NULL, corr_names, NULL, outraw_names_presh, out_hist_alpha, config_reader.bMuteOut);
-	}
+	RunStrainSweep(config_reader.iNumSimulations, pdGammaList, iNumGamma, config_reader.bPreshear, config_reader.bAscDesc, config_reader.bPrintStd, config_reader.bPrintNloops,
+		config_reader.bPrintFastSites, out_names, &stats_names, hist_names, NULL, corr_names, NULL, outraw_names, out_hist_alpha, config_reader.bMuteOut);
 
 	// Free memory
 	delete[] hist_names;
 	delete[] corr_names;
-	delete[] outraw_names_presh;
-	delete[] outraw_names_ascdesc;
+	delete[] outraw_names;
 	delete[] pdGammaList;
 	hist_names = NULL;
 	corr_names = NULL;
-	outraw_names_presh = NULL;
-	outraw_names_ascdesc = NULL;
+	outraw_names = NULL;
 	pdGammaList = NULL;
 
 }
@@ -565,16 +552,19 @@ void StrainSweepCore(int sim_number, double* gamma_list, int gamma_num, bool pre
 	}
 	if (ascdesc) {
 		for (int i = gamma_num - 1; i >= 0; i--) {
+			if (!mute_out) {
+				std::cout << "Current gamma=" << gamma_list[i] << std::endl;
+			}
 			for (int j = 0; j < sim_number; j++) {
 				if (preshear) {
 					::simList[j].GenInitialConditions();
 				}
-				nloop_desc[j][i] = ::simList[j].SetGamma(gamma_list[i], false);
+				::simList[j].SetGamma(gamma_list[i], false);
 				if (dyn_data != NULL) {
-					::simList[j].AdjustLattice(dyn_data[j][2 * gamma_num - 1 - i]);
+					nloop_desc[j][i] = ::simList[j].AdjustLattice(dyn_data[j][2 * gamma_num - 1 - i]);
 				}
 				else {
-					::simList[j].AdjustLattice();
+					nloop_desc[j][i] = ::simList[j].AdjustLattice();
 				}
 				rate_desc[j][i] = ::simList[j].GetAverageRate();
 				ratestd_desc[j][i] = ::simList[j].GetRateStd();
@@ -814,8 +804,8 @@ void RunStrainSweep(int sim_number, double* gamma_list, int num_gamma,
 
 		std::ofstream fout(*out_file_stats);
 		fout << "gamma0\tAvgRate[1/s]\tStdRate[1/s]" << std::endl;
+		double *vals = new double[sim_number];
 		for (int i = 0; i < num_gamma; i++) {
-			double *vals = new double[sim_number];
 			for (int j = 0; j < sim_number; j++) {
 				vals[j] = data[j][i];
 			}
@@ -829,22 +819,19 @@ void RunStrainSweep(int sim_number, double* gamma_list, int num_gamma,
 			else {
 				fout << cur_std << std::endl;;
 			}
-			delete[] vals;
-			vals = NULL;
 		}
 		if (ascdesc) {
-			for (int i = num_gamma - 1; i >= 0; i++) {
-				double *vals = new double[sim_number];
+			for (int i = num_gamma - 1; i >= 0; i--) {
 				for (int j = 0; j < sim_number; j++) {
 					vals[j] = data[j][2 * num_gamma - 1 - i];
 				}
 				double cur_avg = CalcAverage(vals, sim_number);
 				double cur_std = CalcStd(vals, sim_number);
 				fout << gamma_list[i] << "\t" << cur_avg << "\t" << cur_std << std::endl;
-				delete[] vals;
-				vals = NULL;
 			}
 		}
+		delete[] vals;
+		vals = NULL;
 		fout.close();
 	}
 
@@ -1054,7 +1041,7 @@ void RunStrainSweep(int sim_number, double* gamma_list, int num_gamma,
 					fout << "\tcount_g=" << gamma_list[i];
 				}
 				if (ascdesc) {
-					for (int i = num_gamma - 1; i >= 0; i++) {
+					for (int i = num_gamma - 1; i >= 0; i--) {
 						fout << "\tcount_g=" << gamma_list[i];
 					}
 				}
@@ -1071,7 +1058,7 @@ void RunStrainSweep(int sim_number, double* gamma_list, int num_gamma,
 						fout << "\t" << cols[i][k];
 					}
 					if (ascdesc) {
-						for (int i = num_gamma - 1; i >= 0; i++) {
+						for (int i = num_gamma - 1; i >= 0; i--) {
 							fout << "\t" << cols[2 * num_gamma - 1 - i][k];
 						}
 					}
@@ -1727,7 +1714,7 @@ void print_sim_params(std::string out_file_name, int sim_number) {
 
 	fout << "\n\n-------------\n\n";
 	if (_common_params == false) {
-		fout << "Warning: parameters are not shared between simulations. What follows only refers to the first one\n\n";
+		fout << "WARNING : parameters are not shared between simulations. What follows only refers to the first one\n\n";
 	}
 
 	check_norm_mfparams(&(::simList[0]), &fout);

@@ -32,8 +32,8 @@
 
 #define INI_MAXNUMDIM 4
 #define INI_MAXPARAMS 201		// maximum number of noise parameters that can be read directly from INI file
-#define NOISE_MAXPARAMS 2097161 // maximum number of noise parameters allowed in general (either from INI file or from RAW file)
-								// this number is 512*512 (our largest simulations) *8 (number of nearest neighbors in d=4) +1 (to store the number of parameters)
+#define NOISE_MAXPARAMS 33554437 // maximum number of noise parameters allowed in general (either from INI file or from RAW file)
+								// this number is 2048*2048 (our largest simulations) *8 (number of nearest neighbors in d=4) +1 (to store the number of parameters)
 #define INI_TPROT_MAXPARAMS 5
 #define MAX_PRINT_PARAMS 30		// Maximum number of parameters to print when logging parameters to file
 
@@ -101,7 +101,7 @@ static std::complex<double> ComplexCubicRoot1[3] = { 1.0, std::complex<double>{-
 
 
 // Default output parameters
-#define DEF_INI_FILE "simParams.ini" //"D:\\steaime\\Documents\\Research\\Projects\\SoftGlasses\\Ising\\config\\simParams.ini"
+#define DEF_INI_FILE "simParams.ini" // path alternativo: "D:\\steaime\\Documents\\Research\\Projects\\SoftGlasses\\Ising\\config\\simParams.ini"
 
 
 enum TemperatureProtocol {

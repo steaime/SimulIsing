@@ -152,6 +152,10 @@ void ConfigParams::ReadINI(std::string sParamFile)
 		dNormDistFromGmax = -1.0;
 	}
 	sAlphaParamFile = simParams.Get("model", "AlphaParamFile", "");
+	iAlphaFileHdrLen = simParams.GetInteger("model", "AlphaFileHeader", 0);
+	std::string sAlphaFileFmt = simParams.Get("model", "AlphaFileFormat", "d");
+	cAlphaFileFmt = sAlphaFileFmt.c_str()[0];
+	bAlphaFileSwapEndian = simParams.GetBoolean("model", "AlphaFileSwapEndian", false);
 	if (sAlphaParamFile != "") {
 		if (CheckPathRelative(sAlphaParamFile)) sAlphaParamFile = JoinPath(out_folder, sAlphaParamFile);
 		if (!CheckFileExists(sAlphaParamFile)) {
@@ -166,13 +170,33 @@ void ConfigParams::ReadINI(std::string sParamFile)
 		}
 	}
 	else {
-		int32_t nimgs_alpharaw;
-		int64_t npx_alpharaw;
-		std::fstream alpha_fin = OpenRawBinary(sAlphaParamFile, nimgs_alpharaw, npx_alpharaw);
+		int32_t nimgs_alpharaw = 1;
+		int64_t npx_alpharaw = -1;
+		std::fstream alpha_fin = OpenRawBinary(sAlphaParamFile, nimgs_alpharaw, npx_alpharaw, iAlphaFileHdrLen);
 		int64_t num_alphapars = nimgs_alpharaw * npx_alpharaw;
+		if (num_alphapars < 0) {
+			if (dUsePBC) {
+				num_alphapars = GetNumSites();
+				for (int i = 0; i < INI_MAXNUMDIM; i++) {
+					if (piLatticeShape[i] != 1) {
+						num_alphapars *= 2;
+					}
+				}
+			}
+			else {
+				num_alphapars = 0;
+				for (int i = 0; i < INI_MAXNUMDIM; i++) {
+					int iCurShape = piLatticeShape[i];
+					if (iCurShape <= 0) iCurShape = iNumSites;
+					if (iCurShape > 1) {
+						num_alphapars += 2 * (iCurShape - 1) * GetNumSites() / iCurShape;
+					}
+				}
+			}
+		}
 		if (num_alphapars + 1 > NOISE_MAXPARAMS) num_alphapars = NOISE_MAXPARAMS - 1;
 		pdAlphaParams = new double[num_alphapars + 1];
-		ImportDataFromRawBinary(&alpha_fin, &(pdAlphaParams[1]), num_alphapars, NOISE_MAXPARAMS - 1);
+		ImportDataFromRawBinary(&alpha_fin, &(pdAlphaParams[1]), num_alphapars, NOISE_MAXPARAMS - 1, true, cAlphaFileFmt, bAlphaFileSwapEndian);
 		pdAlphaParams[0] = (double)num_alphapars;
 	}
 

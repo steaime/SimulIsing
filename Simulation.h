@@ -128,6 +128,8 @@ public:
 	int ID();
 	int StepCount();
 
+	int ValidateParams() const;
+
 private:
 	IsingParameters _params;
 	Noise _init_noise;
