@@ -227,8 +227,9 @@ void SweepAndSave(const ConfigParams &config_reader) {
 			}
 		}
 		if (config_reader.bSaveRaw) {
+			outraw_names[i] = config_reader.out_folder;
 			if (config_reader.out_folder.back() != '\\') {
-				outraw_names[i] = config_reader.out_folder + "\\";
+				outraw_names[i]  = outraw_names[i] + "\\";
 			}
 			outraw_names[i] = outraw_names[i] + config_reader.rawfinal_prefix + fname_prefix + std::to_string(i) + config_reader.raw_ext;
 		}
