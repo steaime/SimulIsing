@@ -1,1 +1,0 @@
-#	ID	NumSites	Omega	Tau0	K	Beta	n	AlphaAvg	AlphaNoise	AlphaParams	InitAvg	InitNoise	InitParams	TempProtocol	TempParams	ForceMeanField	Gamma0	Gammac	gammac	Kc
